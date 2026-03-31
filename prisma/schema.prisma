@@ -8,28 +8,41 @@ datasource db {
 }
 
 model Conversation {
-  id        String    @id
-  userType  UserType?
-  name      String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  channel       Channel
+  channelId     String    // ID del contacto en la plataforma (phone E.164, psid, ig_id)
+  userType      UserType?
+  contactName   String?
+  botPaused     Boolean   @default(false)
+  lastMessage   String?
+  lastMessageAt DateTime?
+  unreadCount   Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   messages Message[]
 
+  @@unique([channel, channelId])
   @@map("conversations")
 }
 
 model Message {
-  id             String   @id @default(cuid())
+  id             String      @id @default(cuid())
   conversationId String
-  role           Role
+  role           MessageRole
   content        String
-  waMessageId    String?
-  createdAt      DateTime @default(now())
+  waMessageId    String?     // ID único de Meta para deduplicación
+  createdAt      DateTime    @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id])
 
   @@map("messages")
+}
+
+enum Channel {
+  WHATSAPP
+  FACEBOOK
+  INSTAGRAM
 }
 
 enum UserType {
@@ -38,7 +51,8 @@ enum UserType {
   UNKNOWN
 }
 
-enum Role {
-  user
-  assistant
+enum MessageRole {
+  USER
+  BOT
+  OPERATOR
 }

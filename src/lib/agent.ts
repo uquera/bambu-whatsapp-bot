@@ -4,15 +4,138 @@ import { SYSTEM_PROMPT_PACIENTE, SYSTEM_PROMPT_PROFESIONAL, CLASSIFICATION_PROMP
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const MODEL = "claude-haiku-4-5-20251001"
+const MODEL = "claude-sonnet-4-6"
 const MAX_HISTORY_MESSAGES = 20
 
-export function buildMessages(dbMessages: Message[]): Anthropic.MessageParam[] {
-  return dbMessages.slice(-MAX_HISTORY_MESSAGES).map((m) => ({
-    role: m.role as "user" | "assistant",
-    content: m.content,
-  }))
+// ─── Herramientas disponibles para el agente ─────────────────────────────────
+
+const AGENT_TOOLS: Anthropic.Tool[] = [
+  {
+    name: "check_availability",
+    description:
+      "Consulta la disponibilidad de horas en el centro clínico para una fecha y especialidad dadas. Úsalo cuando el paciente quiera agendar una cita.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        fecha: {
+          type: "string",
+          description: "Fecha en formato YYYY-MM-DD",
+        },
+        especialidad: {
+          type: "string",
+          description:
+            "Especialidad médica, ej: 'psicología', 'kinesiología', 'nutrición'",
+        },
+      },
+      required: ["fecha"],
+    },
+  },
+  {
+    name: "book_appointment",
+    description:
+      "Agenda una cita para el paciente en el centro clínico. Úsalo SOLO después de que el paciente confirme la hora y fecha.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        pacienteNombre: { type: "string", description: "Nombre completo del paciente" },
+        pacienteTelefono: { type: "string", description: "Teléfono del paciente en formato E.164" },
+        fecha: { type: "string", description: "Fecha en formato YYYY-MM-DD" },
+        hora: { type: "string", description: "Hora en formato HH:MM" },
+        especialidad: { type: "string", description: "Especialidad médica" },
+      },
+      required: ["pacienteNombre", "fecha", "hora", "especialidad"],
+    },
+  },
+  {
+    name: "get_box_info",
+    description:
+      "Obtiene información actualizada de los boxes disponibles para arriendo en el centro. Úsalo cuando un profesional pregunte sobre arriendo.",
+    input_schema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "register_professional_interest",
+    description:
+      "Registra el interés de un profesional de la salud en arrendar un box. Úsalo cuando el profesional exprese intención de arrendar.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        nombre: { type: "string", description: "Nombre del profesional" },
+        telefono: { type: "string", description: "Teléfono de contacto" },
+        especialidad: { type: "string", description: "Especialidad que ejerce" },
+        mensaje: { type: "string", description: "Mensaje o notas adicionales" },
+      },
+      required: [],
+    },
+  },
+]
+
+// ─── Ejecutor de tools (stub — se completa en Fase 4 con centrobambu.ts) ────
+
+async function executeTool(
+  name: string,
+  input: Record<string, string>
+): Promise<string> {
+  switch (name) {
+    case "check_availability":
+      // TODO Fase 4: llamar a centrobambu.getDisponibilidad()
+      return JSON.stringify({
+        disponible: true,
+        slots: ["10:00", "11:00", "14:00", "15:30"],
+        fecha: input.fecha,
+        especialidad: input.especialidad ?? "general",
+        nota: "Horarios de demostración — confirmar con recepción",
+      })
+
+    case "book_appointment":
+      // TODO Fase 4: llamar a centrobambu.createCita()
+      return JSON.stringify({
+        confirmado: true,
+        mensaje: `Cita agendada para ${input.pacienteNombre} el ${input.fecha} a las ${input.hora} en ${input.especialidad}`,
+        nota: "Cita de demostración — se confirmará por recepción",
+      })
+
+    case "get_box_info":
+      // TODO Fase 4: llamar a centrobambu.getBoxes()
+      return JSON.stringify({
+        boxes: [
+          { nombre: "Box 1 – Psicología (25m²)", mediaJornada: 180000, jornadaCompleta: 320000 },
+          { nombre: "Box 2 – Kinesiología (30m²)", mediaJornada: 220000, jornadaCompleta: 380000 },
+          { nombre: "Box 3 – Multiuso (20m²)", mediaJornada: 150000, jornadaCompleta: 260000 },
+          { nombre: "Box 5 – Pequeño (18m²)", precio: 120000, nota: "horario flexible" },
+        ],
+        moneda: "CLP/mes",
+        nota: "Datos de demostración",
+      })
+
+    case "register_professional_interest":
+      // TODO Fase 4: llamar a centrobambu.createLead()
+      return JSON.stringify({
+        registrado: true,
+        mensaje: "Interés registrado. El equipo de Bambú se pondrá en contacto pronto.",
+      })
+
+    default:
+      return JSON.stringify({ error: `Tool desconocida: ${name}` })
+  }
 }
+
+// ─── Conversión de mensajes DB → Anthropic ───────────────────────────────────
+
+export function buildMessages(dbMessages: Message[]): Anthropic.MessageParam[] {
+  return dbMessages
+    .slice(-MAX_HISTORY_MESSAGES)
+    .filter((m) => m.role !== "OPERATOR") // El operador no forma parte del contexto del agente
+    .map((m) => ({
+      role: m.role === "USER" ? ("user" as const) : ("assistant" as const),
+      content: m.content,
+    }))
+}
+
+// ─── Agente principal con tool use loop ──────────────────────────────────────
 
 export async function runAgent(
   userType: "PACIENTE" | "PROFESIONAL",
@@ -26,17 +149,64 @@ export async function runAgent(
     { role: "user", content: newUserMessage },
   ]
 
-  const response = await anthropic.messages.create({
-    model: MODEL,
-    max_tokens: 1024,
-    system: systemPrompt,
-    messages,
-  })
+  // Tool use loop: Claude puede llamar herramientas varias veces antes de responder texto
+  for (let iteration = 0; iteration < 5; iteration++) {
+    const response = await anthropic.messages.create({
+      model: MODEL,
+      max_tokens: 1024,
+      system: systemPrompt,
+      tools: AGENT_TOOLS,
+      messages,
+    })
 
-  const block = response.content[0]
-  if (block.type !== "text") throw new Error("Unexpected response type from Claude")
-  return block.text
+    // Respuesta de texto final
+    if (response.stop_reason === "end_turn") {
+      const textBlock = response.content.find((b) => b.type === "text")
+      if (!textBlock || textBlock.type !== "text") {
+        throw new Error("Claude respondió sin bloque de texto")
+      }
+      return textBlock.text
+    }
+
+    // Claude quiere usar una tool
+    if (response.stop_reason === "tool_use") {
+      // Agregar la respuesta del asistente (con las tool calls) al historial
+      messages.push({ role: "assistant", content: response.content })
+
+      // Ejecutar todas las tools solicitadas en paralelo
+      const toolResults: Anthropic.ToolResultBlockParam[] = await Promise.all(
+        response.content
+          .filter((b): b is Anthropic.ToolUseBlock => b.type === "tool_use")
+          .map(async (toolCall) => {
+            console.log(`[agent] Tool use: ${toolCall.name}`, toolCall.input)
+            const result = await executeTool(
+              toolCall.name,
+              toolCall.input as Record<string, string>
+            )
+            console.log(`[agent] Tool result: ${toolCall.name} → ${result}`)
+            return {
+              type: "tool_result" as const,
+              tool_use_id: toolCall.id,
+              content: result,
+            }
+          })
+      )
+
+      // Agregar resultados de tools al historial y continuar el loop
+      messages.push({ role: "user", content: toolResults })
+      continue
+    }
+
+    // Otro stop_reason (max_tokens, etc.)
+    const textBlock = response.content.find((b) => b.type === "text")
+    if (textBlock && textBlock.type === "text") return textBlock.text
+    throw new Error(`Stop reason inesperado: ${response.stop_reason}`)
+  }
+
+  throw new Error("El agente superó el máximo de iteraciones de tool use")
 }
+
+// ─── Clasificación rápida de intención ───────────────────────────────────────
 
 export async function classifyUserIntent(message: string): Promise<"PACIENTE" | "PROFESIONAL"> {
   const prompt = CLASSIFICATION_PROMPT.replace("{MESSAGE}", message)
