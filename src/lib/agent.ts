@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk"
 import type { Message } from "@prisma/client"
-import { SYSTEM_PROMPT_PACIENTE, SYSTEM_PROMPT_PROFESIONAL, CLASSIFICATION_PROMPT } from "./prompts"
+import { buildSystemPrompt, CLASSIFICATION_PROMPT } from "./prompts"
+import { getDisponibilidad, createCita, getBoxes, createLead } from "./centrobambu"
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -80,43 +81,41 @@ async function executeTool(
   input: Record<string, string>
 ): Promise<string> {
   switch (name) {
-    case "check_availability":
-      // TODO Fase 4: llamar a centrobambu.getDisponibilidad()
-      return JSON.stringify({
-        disponible: true,
-        slots: ["10:00", "11:00", "14:00", "15:30"],
+    case "check_availability": {
+      const result = await getDisponibilidad(input.fecha, input.especialidad)
+      return JSON.stringify(result)
+    }
+
+    case "book_appointment": {
+      const result = await createCita({
+        pacienteNombre: input.pacienteNombre,
+        pacienteTelefono: input.pacienteTelefono,
+        whatsappId: input.whatsappId,
         fecha: input.fecha,
-        especialidad: input.especialidad ?? "general",
-        nota: "Horarios de demostración — confirmar con recepción",
+        hora: input.hora,
+        especialidad: input.especialidad,
       })
+      return JSON.stringify(result)
+    }
 
-    case "book_appointment":
-      // TODO Fase 4: llamar a centrobambu.createCita()
-      return JSON.stringify({
-        confirmado: true,
-        mensaje: `Cita agendada para ${input.pacienteNombre} el ${input.fecha} a las ${input.hora} en ${input.especialidad}`,
-        nota: "Cita de demostración — se confirmará por recepción",
+    case "get_box_info": {
+      const boxes = await getBoxes()
+      return JSON.stringify({ boxes })
+    }
+
+    case "register_professional_interest": {
+      await createLead({
+        nombre: input.nombre,
+        telefono: input.telefono,
+        canal: input.canal ?? "WHATSAPP",
+        especialidad: input.especialidad,
+        mensaje: input.mensaje,
       })
-
-    case "get_box_info":
-      // TODO Fase 4: llamar a centrobambu.getBoxes()
-      return JSON.stringify({
-        boxes: [
-          { nombre: "Box 1 – Psicología (25m²)", mediaJornada: 180000, jornadaCompleta: 320000 },
-          { nombre: "Box 2 – Kinesiología (30m²)", mediaJornada: 220000, jornadaCompleta: 380000 },
-          { nombre: "Box 3 – Multiuso (20m²)", mediaJornada: 150000, jornadaCompleta: 260000 },
-          { nombre: "Box 5 – Pequeño (18m²)", precio: 120000, nota: "horario flexible" },
-        ],
-        moneda: "CLP/mes",
-        nota: "Datos de demostración",
-      })
-
-    case "register_professional_interest":
-      // TODO Fase 4: llamar a centrobambu.createLead()
       return JSON.stringify({
         registrado: true,
         mensaje: "Interés registrado. El equipo de Bambú se pondrá en contacto pronto.",
       })
+    }
 
     default:
       return JSON.stringify({ error: `Tool desconocida: ${name}` })
@@ -142,7 +141,7 @@ export async function runAgent(
   history: Anthropic.MessageParam[],
   newUserMessage: string
 ): Promise<string> {
-  const systemPrompt = userType === "PACIENTE" ? SYSTEM_PROMPT_PACIENTE : SYSTEM_PROMPT_PROFESIONAL
+  const systemPrompt = await buildSystemPrompt(userType)
 
   const messages: Anthropic.MessageParam[] = [
     ...history,
