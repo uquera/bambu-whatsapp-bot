@@ -79,16 +79,26 @@ export default function DashboardPage() {
     // Marcar como leído visualmente (el unreadCount se actualiza via SSE/refetch)
   }
 
+  const unreadCount = conversations.filter((c) => c.unreadCount > 0).length
+
   return (
     <div className="h-screen flex flex-col bg-white">
       {/* Header */}
-      <header className="h-14 flex items-center justify-between px-4 border-b bg-white shadow-sm flex-shrink-0">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold text-green-800">🌿 Bambú CRM</span>
+      <header className="h-14 flex items-center justify-between px-5 bg-green-800 flex-shrink-0 shadow-md">
+        <div className="flex items-center gap-2.5">
+          <span className="text-xl">🌿</span>
+          <span className="text-lg font-bold text-white tracking-tight">Bambú CRM</span>
         </div>
-        <span className="text-sm text-gray-500">
-          {conversations.length} conversación{conversations.length !== 1 ? "es" : ""}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="text-green-200 text-sm">
+            {conversations.length} conversación{conversations.length !== 1 ? "es" : ""}
+          </span>
+          {unreadCount > 0 && (
+            <span className="bg-white text-green-800 text-xs font-bold rounded-full px-2 py-0.5">
+              {unreadCount} sin leer
+            </span>
+          )}
+        </div>
       </header>
 
       {/* Body */}
