@@ -3,6 +3,7 @@ import { Channel } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { sendMessage, sendButtons, WELCOME_BODY, WELCOME_BUTTONS } from "@/lib/channels"
 import { buildMessages, runAgent, classifyUserIntent } from "@/lib/agent"
+import { botEvents } from "@/lib/events"
 
 // ─── GET: Verificación del webhook de Meta (todos los canales usan el mismo token) ──
 export async function GET(req: NextRequest) {
@@ -181,6 +182,7 @@ async function processWebhook(body: unknown) {
         unreadCount: { increment: 1 },
       },
     })
+    botEvents.emit("update", { type: "new_message", conversationId: conversation.id })
     console.log(`[webhook/meta] Bot pausado para ${channel}:${channelId}, mensaje guardado`)
     return
   }
@@ -194,6 +196,7 @@ async function processWebhook(body: unknown) {
       waMessageId,
     },
   })
+  botEvents.emit("update", { type: "new_message", conversationId: conversation.id })
 
   console.log(`[webhook/meta] ${channel}:${channelId} (tipo: ${conversation.userType ?? "nuevo"}): ${userText}`)
 
@@ -256,6 +259,7 @@ async function processWebhook(body: unknown) {
         updatedAt: new Date(),
       },
     })
+    botEvents.emit("update", { type: "conversation_updated", conversationId: conversation.id })
 
     console.log(`[webhook/meta] Respuesta enviada a ${channel}:${channelId}`)
   }

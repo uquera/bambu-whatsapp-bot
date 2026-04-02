@@ -1,7 +1,7 @@
 // Facebook Messenger usa el mismo endpoint que Instagram pero con PAGE_ACCESS_TOKEN de la página FB
 const BASE_URL = "https://graph.facebook.com/v21.0"
 
-async function sendToMessenger(recipientId: string, payload: unknown): Promise<void> {
+async function sendToMessenger(recipientId: string, payload: Record<string, unknown>): Promise<void> {
   const token = process.env.FACEBOOK_PAGE_ACCESS_TOKEN
 
   if (!token) {

@@ -2,7 +2,7 @@
 // Si la cuenta de IG está vinculada a la página FB, el PAGE_ACCESS_TOKEN sirve para ambos
 const BASE_URL = "https://graph.facebook.com/v21.0"
 
-async function sendToInstagram(recipientId: string, payload: unknown): Promise<void> {
+async function sendToInstagram(recipientId: string, payload: Record<string, unknown>): Promise<void> {
   // Preferir token de IG si existe, si no usar el de Facebook (mismo token si están vinculados)
   const token = process.env.INSTAGRAM_PAGE_ACCESS_TOKEN ?? process.env.FACEBOOK_PAGE_ACCESS_TOKEN
 
