@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     return new NextResponse(challenge, { status: 200 })
   }
 
-  return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  return NextResponse.json({ status: "Webhook activo", message: "Bambú CRM webhook endpoint" }, { status: 200 })
 }
 
 // ─── POST: Mensajes entrantes de WA / FB / IG ────────────────────────────────
