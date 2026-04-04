@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { sendMessage, sendButtons, WELCOME_BODY, WELCOME_BUTTONS } from "@/lib/channels"
 import { buildMessages, runAgent, classifyUserIntent } from "@/lib/agent"
 import { botEvents } from "@/lib/events"
+import { createPacienteLead } from "@/lib/centrobambu"
 
 // ─── GET: Verificación del webhook de Meta (todos los canales usan el mismo token) ──
 export async function GET(req: NextRequest) {
@@ -209,6 +210,7 @@ async function processWebhook(body: unknown) {
         where: { id: conversation.id },
         data: { userType: "PACIENTE" },
       })
+      createPacienteLead({ nombre: contactName, telefono: channelId, canal: channel }).catch(() => {})
       replyText =
         "¡Perfecto! 😊 Estoy aquí para ayudarte con información sobre nuestros servicios, precios y citas. ¿En qué puedo ayudarte?"
 
@@ -227,6 +229,10 @@ async function processWebhook(body: unknown) {
         where: { id: conversation.id },
         data: { userType: classified },
       })
+
+      if (classified === "PACIENTE") {
+        createPacienteLead({ nombre: contactName, telefono: channelId, canal: channel, mensaje: userText }).catch(() => {})
+      }
 
       await sendButtons(channel, channelId, WELCOME_BODY, WELCOME_BUTTONS)
       replyText = await runAgent(classified, [], userText)

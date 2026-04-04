@@ -148,3 +148,24 @@ export async function createLead(data: LeadInput): Promise<void> {
     console.warn("[centrobambu] createLead falló:", err)
   }
 }
+
+export interface PacienteLeadInput {
+  nombre?: string
+  telefono?: string
+  canal: string       // WHATSAPP | FACEBOOK | INSTAGRAM
+  servicio?: string   // especialidad o servicio que busca
+  mensaje?: string
+}
+
+export async function createPacienteLead(data: PacienteLeadInput): Promise<void> {
+  try {
+    const res = await fetch(`${BASE}/api/bambu/paciente-leads`, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) console.warn(`[centrobambu] createPacienteLead error ${res.status}`)
+  } catch (err) {
+    console.warn("[centrobambu] createPacienteLead falló:", err)
+  }
+}
