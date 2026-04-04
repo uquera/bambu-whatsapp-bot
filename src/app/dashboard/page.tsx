@@ -10,11 +10,27 @@ import MessageThread, {
 
 type ChannelFilter = "ALL" | "WHATSAPP" | "FACEBOOK" | "INSTAGRAM"
 
+interface Stats {
+  totalConversations: number
+  byChannel: Record<string, number>
+  byUserType: Record<string, number>
+  pausedCount: number
+  totalUnread: number
+  messagesToday: number
+}
+
 export default function DashboardPage() {
   const [conversations, setConversations] = useState<ConversationSummary[]>([])
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<ConversationDetail | null>(null)
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>("ALL")
+  const [stats, setStats] = useState<Stats | null>(null)
+
+  const fetchStats = useCallback(async () => {
+    const res = await fetch("/api/stats")
+    if (!res.ok) return
+    setStats(await res.json())
+  }, [])
 
   const fetchConversations = useCallback(async () => {
     const qs = channelFilter !== "ALL" ? `?channel=${channelFilter}` : ""
@@ -30,6 +46,11 @@ export default function DashboardPage() {
     const data = await res.json()
     setDetail(data)
   }, [])
+
+  // Carga inicial
+  useEffect(() => {
+    fetchStats()
+  }, [fetchStats])
 
   // Carga inicial y al cambiar filtro
   useEffect(() => {
@@ -49,6 +70,7 @@ export default function DashboardPage() {
       try {
         const event = JSON.parse(e.data) as { type: string; conversationId: string }
         fetchConversations()
+        fetchStats()
         if (selectedId && event.conversationId === selectedId) {
           fetchDetail(selectedId)
         }
@@ -100,6 +122,31 @@ export default function DashboardPage() {
           )}
         </div>
       </header>
+
+      {/* Stats bar */}
+      {stats && (
+        <div className="flex items-center gap-4 px-5 py-2 bg-green-50 border-b border-green-100 text-xs text-green-900 flex-shrink-0 flex-wrap">
+          <span className="font-semibold">{stats.totalConversations} conversaciones</span>
+          <span className="text-green-400">|</span>
+          {stats.byChannel.WHATSAPP != null && (
+            <span>🟢 WA: <b>{stats.byChannel.WHATSAPP}</b></span>
+          )}
+          {stats.byChannel.FACEBOOK != null && (
+            <span>🔵 FB: <b>{stats.byChannel.FACEBOOK}</b></span>
+          )}
+          {stats.byChannel.INSTAGRAM != null && (
+            <span>🟣 IG: <b>{stats.byChannel.INSTAGRAM}</b></span>
+          )}
+          <span className="text-green-400">|</span>
+          <span>Pacientes: <b>{stats.byUserType.PACIENTE ?? 0}</b></span>
+          <span>Profesionales: <b>{stats.byUserType.PROFESIONAL ?? 0}</b></span>
+          <span className="text-green-400">|</span>
+          {stats.pausedCount > 0 && (
+            <span className="text-amber-700">⏸ Pausadas: <b>{stats.pausedCount}</b></span>
+          )}
+          <span>Mensajes hoy: <b>{stats.messagesToday}</b></span>
+        </div>
+      )}
 
       {/* Body */}
       <div className="flex-1 flex overflow-hidden">
