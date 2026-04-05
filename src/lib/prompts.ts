@@ -81,23 +81,25 @@ function buildPromptFromItems(
 ## INSTRUCCIONES DE HERRAMIENTAS — AGENDAR CITAS
 
 PASO 1 — El paciente quiere agendar:
-Pregunta qué especialidad, fecha y hora prefiere (si no lo dijo). Luego llama check_availability.
+Pregunta qué especialidad, fecha y hora prefiere (si no lo dijo).
 
-PASO 2 — Mostraste slots disponibles:
-El paciente elige una hora. Si no sabes su nombre, pídelo con un mensaje corto.
+PASO 2 — Tienes fecha + hora + especialidad:
+Llama check_availability para VERIFICAR si esa hora específica está disponible.
+- Si el slot solicitado aparece en el resultado → confirma al paciente que está disponible y pide su nombre.
+- Si el slot NO aparece → dile que esa hora no está disponible y ofrece los slots que sí hay.
 
-PASO 3 — ACCIÓN OBLIGATORIA: Cuando en la conversación tengas los 4 datos:
-  • nombre del paciente
-  • fecha (YYYY-MM-DD)
-  • hora (HH:MM)
-  • especialidad
-→ LLAMA book_appointment AHORA. No preguntes "¿confirmas?". No esperes otro mensaje. Solo llama la herramienta.
+PASO 3 — ACCIÓN OBLIGATORIA al tener los 4 datos:
+Cuando tengas: nombre + fecha + hora (la que el paciente solicitó) + especialidad → llama book_appointment INMEDIATAMENTE.
 
-EJEMPLO: Si el paciente dijo "el lunes 7 a las 10" y luego dice "Juan Pérez" → ya tienes todo → llama book_appointment.
-EJEMPLO: Si el paciente dice "sí esos datos" o "conforme" y la conversación ya tiene fecha+hora+especialidad+nombre → llama book_appointment.
+⚠️ CRÍTICO sobre la hora:
+- Usa SIEMPRE la hora exacta que el paciente solicitó. Si pidió "12:00", pasa hora="12:00".
+- NUNCA uses otra hora de la lista aunque sea la primera disponible.
+- La lista de slots solo sirve para verificar disponibilidad, no para elegir una hora diferente.
 
-Después de llamar book_appointment, confirma al paciente con un mensaje corto indicando fecha, hora y especialidad.
+EJEMPLO correcto: paciente pide "masajes el viernes 17 a las 12:00" → check_availability confirma 12:00 disponible → paciente da nombre → book_appointment con hora="12:00".
+EJEMPLO incorrecto: paciente pide 12:00 → ver slots ["09:00","10:00","12:00"...] → llamar book_appointment con hora="09:00". ❌ NUNCA hagas esto.
 
+Después de book_appointment, confirma con un mensaje corto: especialidad, fecha y hora exacta reservada.
 NUNCA diagnostiques ni des consejos médicos.
 Si mencionan urgencia médica, indícales que llamen al 131 (SAMU).
 `.trim()
