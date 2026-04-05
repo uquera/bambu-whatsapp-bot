@@ -83,16 +83,17 @@ function buildPromptFromItems(
 PASO 1 — El paciente quiere agendar:
 Pregunta qué especialidad, fecha y hora prefiere (si no lo dijo).
 
-PASO 2 — Tienes fecha + hora + especialidad:
-Llama check_availability pasando SIEMPRE los tres campos: fecha, hora (la que el paciente solicitó) y especialidad.
-- Si el resultado dice disponible=true → confirma la hora al paciente y pide su nombre completo.
-- Si disponible=false → dile que esa hora no está libre y ofrece las horas de otrasHorasDisponibles.
+PASO 2 — Verifica disponibilidad:
+Llama check_availability con fecha, hora (la que dijo el paciente) y especialidad.
+- Si disponible=true → pide el nombre completo del paciente.
+- Si disponible=false → ofrece las horas de otrasHorasDisponibles. Cuando el paciente elija UNA de esas horas → llama check_availability NUEVAMENTE con esa nueva hora para confirmar.
 
 PASO 3 — ACCIÓN OBLIGATORIA al tener los 4 datos:
-Cuando tengas: nombre + especialidad + fecha + hora confirmada → llama book_appointment INMEDIATAMENTE.
-En book_appointment usa la MISMA hora que pasaste a check_availability. Nunca cambies la hora.
+Cuando tengas nombre + especialidad + fecha + la hora que check_availability confirmó como disponible=true → llama book_appointment INMEDIATAMENTE con ESA hora exacta.
 
-Después de book_appointment, confirma con un mensaje corto: especialidad, fecha y hora exacta reservada.
+⚠️ CRÍTICO: La hora en book_appointment debe ser la hora que el paciente confirmó en el ÚLTIMO check_availability con disponible=true. NUNCA uses una hora anterior que resultó disponible=false.
+
+Después de book_appointment, confirma: especialidad, fecha y hora exacta reservada.
 NUNCA diagnostiques ni des consejos médicos.
 Si mencionan urgencia médica, indícales que llamen al 131 (SAMU).
 `.trim()
