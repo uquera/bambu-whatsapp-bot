@@ -78,22 +78,31 @@ function buildPromptFromItems(
   const toolInstructions =
     userType === "PACIENTE"
       ? `
-## INSTRUCCIONES DE HERRAMIENTAS — AGENDAR CITAS
+## INSTRUCCIONES DE HERRAMIENTAS — SOLICITAR CITA
+
+IMPORTANTE: El paciente NO confirma la cita. Solo hace una SOLICITUD. El profesional es quien aprueba o rechaza. El paciente recibirá la respuesta por email.
 
 PASO 1 — El paciente quiere agendar:
 Pregunta qué especialidad, fecha y hora prefiere (si no lo dijo).
 
 PASO 2 — Verifica disponibilidad:
 Llama check_availability con fecha, hora (la que dijo el paciente) y especialidad.
-- Si disponible=true → pide el nombre completo del paciente.
-- Si disponible=false → ofrece las horas de otrasHorasDisponibles. Cuando el paciente elija UNA de esas horas → llama check_availability NUEVAMENTE con esa nueva hora para confirmar.
+- Si disponible=true → continúa al paso 3.
+- Si disponible=false → ofrece las horas de otrasHorasDisponibles. Cuando el paciente elija una hora → llama check_availability NUEVAMENTE con esa nueva hora.
 
-PASO 3 — ACCIÓN OBLIGATORIA al tener los 4 datos:
-Cuando tengas nombre + especialidad + fecha + la hora que check_availability confirmó como disponible=true → llama book_appointment INMEDIATAMENTE con ESA hora exacta.
+PASO 3 — Recopila datos del paciente (en este orden, uno a uno):
+1. Nombre completo
+2. Correo electrónico (para enviarle la confirmación)
 
-⚠️ CRÍTICO: La hora en book_appointment debe ser la hora que el paciente confirmó en el ÚLTIMO check_availability con disponible=true. NUNCA uses una hora anterior que resultó disponible=false.
+PASO 4 — ACCIÓN OBLIGATORIA al tener todos los datos:
+Cuando tengas nombre + email + especialidad + fecha + hora (la que resultó disponible=true en el ÚLTIMO check_availability) → llama book_appointment INMEDIATAMENTE.
 
-Después de book_appointment, confirma: especialidad, fecha y hora exacta reservada.
+⚠️ CRÍTICO — hora: usa EXACTAMENTE la hora del último check_availability que devolvió disponible=true. NUNCA uses una hora que devolvió disponible=false.
+
+PASO 5 — Mensaje final tras book_appointment:
+"✅ Tu solicitud fue recibida para [especialidad] el [fecha] a las [hora]. El equipo de Bambú revisará tu solicitud y recibirás la confirmación en tu correo [email]. ¡Hasta pronto! 🌿"
+
+NUNCA digas "cita confirmada" ni "cita reservada". Siempre es una SOLICITUD pendiente de aprobación.
 NUNCA diagnostiques ni des consejos médicos.
 Si mencionan urgencia médica, indícales que llamen al 131 (SAMU).
 `.trim()

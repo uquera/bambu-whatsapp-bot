@@ -29,6 +29,7 @@ export interface Slot {
 
 export interface CitaInput {
   pacienteNombre: string
+  pacienteEmail?: string
   pacienteTelefono?: string
   whatsappId?: string
   fecha: string       // YYYY-MM-DD

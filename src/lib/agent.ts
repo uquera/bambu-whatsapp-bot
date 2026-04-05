@@ -43,12 +43,13 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
       type: "object" as const,
       properties: {
         pacienteNombre: { type: "string", description: "Nombre completo del paciente" },
+        pacienteEmail: { type: "string", description: "Correo electrónico del paciente, necesario para enviarle la confirmación" },
         pacienteTelefono: { type: "string", description: "Teléfono del paciente en formato E.164" },
         fecha: { type: "string", description: "Fecha en formato YYYY-MM-DD" },
-        hora: { type: "string", description: "Hora en formato HH:MM" },
+        hora: { type: "string", description: "Hora en formato HH:MM — debe ser la hora exacta que check_availability confirmó como disponible=true" },
         especialidad: { type: "string", description: "Especialidad médica" },
       },
-      required: ["pacienteNombre", "fecha", "hora", "especialidad"],
+      required: ["pacienteNombre", "pacienteEmail", "fecha", "hora", "especialidad"],
     },
   },
   {
@@ -104,6 +105,7 @@ async function executeTool(
     case "book_appointment": {
       const result = await createCita({
         pacienteNombre: input.pacienteNombre,
+        pacienteEmail: input.pacienteEmail,
         pacienteTelefono: input.pacienteTelefono,
         whatsappId: input.whatsappId,
         fecha: input.fecha,
