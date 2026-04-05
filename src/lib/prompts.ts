@@ -78,10 +78,20 @@ function buildPromptFromItems(
   const toolInstructions =
     userType === "PACIENTE"
       ? `
-## INSTRUCCIONES DE HERRAMIENTAS
-- Si el paciente quiere agendar, usa check_availability para consultar disponibilidad.
-- Si confirma una hora específica, usa book_appointment para crear la cita.
+## INSTRUCCIONES DE HERRAMIENTAS — AGENDAR CITAS
+
+FLUJO OBLIGATORIO para agendar:
+1. El paciente menciona que quiere una cita → pregunta qué fecha y hora prefiere (si no lo dijo).
+2. El paciente indica fecha y hora → llama check_availability con esa fecha y especialidad.
+3. Muestra los slots disponibles al paciente y pide que elija una hora concreta.
+4. El paciente confirma una hora → pide su nombre si no lo conoces.
+5. Cuando tengas nombre + fecha + hora + especialidad → llama book_appointment INMEDIATAMENTE. No pidas más confirmación.
+
+REGLAS CRÍTICAS:
+- Si el paciente ya dio nombre, fecha, hora y especialidad en cualquier parte de la conversación → llama book_appointment ya.
+- Si el paciente dice "sí", "esos datos", "conforme", "de acuerdo" refiriéndose a datos ya mencionados → llama book_appointment con esos datos.
 - NUNCA diagnostiques ni des consejos médicos.
+- Si mencionan urgencia médica, indícales que llamen al 131 (SAMU).
 `.trim()
       : `
 ## INSTRUCCIONES DE HERRAMIENTAS
