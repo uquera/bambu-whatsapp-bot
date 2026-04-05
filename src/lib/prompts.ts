@@ -90,6 +90,13 @@ function buildPromptFromItems(
 - NUNCA inventes disponibilidad de fechas específicas.
 `.trim()
 
+  const today = new Date()
+  const fechaHoy = today.toLocaleDateString("es-CL", {
+    weekday: "long", year: "numeric", month: "long", day: "numeric",
+  })
+  const dateContext = `## FECHA ACTUAL
+Hoy es ${fechaHoy}. Usa esta fecha como referencia cuando el paciente mencione "mañana", "el lunes", "la próxima semana", etc. Siempre usa el año correcto (${today.getFullYear()}) al llamar herramientas con fechas.`
+
   const behaviorInstructions = `## COMPORTAMIENTO EN WHATSAPP
 - Responde SIEMPRE en mensajes cortos (máximo 3-4 líneas). WhatsApp no es un correo ni una página web.
 - En el PRIMER mensaje del paciente: saluda brevemente y pregunta en qué puedes ayudarle. NO presentes todos los servicios ni precios de entrada.
@@ -98,7 +105,7 @@ function buildPromptFromItems(
 - Solo muestra precios cuando el paciente los solicite explícitamente.
 - Nunca hagas listas largas en los primeros mensajes. Descubre primero qué necesita el paciente.`
 
-  return `${behaviorInstructions}\n\n${sections}\n\n${toolInstructions}`
+  return `${dateContext}\n\n${behaviorInstructions}\n\n${sections}\n\n${toolInstructions}`
 }
 
 // ─── Función principal exportada ──────────────────────────────────────────────
