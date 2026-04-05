@@ -14,7 +14,7 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "check_availability",
     description:
-      "Consulta la disponibilidad de horas en el centro clínico para una fecha y especialidad dadas. Úsalo cuando el paciente quiera agendar una cita.",
+      "Consulta la disponibilidad de horas en el centro clínico para una fecha y especialidad dadas. Úsalo cuando el paciente quiera agendar una cita. SIEMPRE pasa la hora que el paciente solicitó en el campo 'hora'.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -22,13 +22,17 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
           type: "string",
           description: "Fecha en formato YYYY-MM-DD",
         },
+        hora: {
+          type: "string",
+          description: "Hora exacta que el paciente solicitó, en formato HH:MM (ej: '14:00'). OBLIGATORIO pasarla para verificar si esa hora específica está disponible.",
+        },
         especialidad: {
           type: "string",
           description:
             "Especialidad médica, ej: 'psicología', 'kinesiología', 'nutrición'",
         },
       },
-      required: ["fecha"],
+      required: ["fecha", "hora"],
     },
   },
   {
@@ -83,7 +87,18 @@ async function executeTool(
   switch (name) {
     case "check_availability": {
       const result = await getDisponibilidad(input.fecha, input.especialidad)
-      return JSON.stringify(result)
+      const horasolicitada = input.hora
+      const disponible = horasolicitada ? result.slots.includes(horasolicitada) : null
+      return JSON.stringify({
+        horasolicitada,
+        disponible,
+        mensaje: disponible
+          ? `La hora ${horasolicitada} está disponible. Usa EXACTAMENTE "${horasolicitada}" al llamar book_appointment.`
+          : disponible === false
+          ? `La hora ${horasolicitada} NO está disponible. Ofrece estas horas al paciente y espera que elija.`
+          : "No se especificó hora",
+        otrasHorasDisponibles: result.slots.filter(s => s !== horasolicitada),
+      })
     }
 
     case "book_appointment": {
