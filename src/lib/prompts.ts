@@ -80,18 +80,26 @@ function buildPromptFromItems(
       ? `
 ## INSTRUCCIONES DE HERRAMIENTAS — AGENDAR CITAS
 
-FLUJO OBLIGATORIO para agendar:
-1. El paciente menciona que quiere una cita → pregunta qué fecha y hora prefiere (si no lo dijo).
-2. El paciente indica fecha y hora → llama check_availability con esa fecha y especialidad.
-3. Muestra los slots disponibles al paciente y pide que elija una hora concreta.
-4. El paciente confirma una hora → pide su nombre si no lo conoces.
-5. Cuando tengas nombre + fecha + hora + especialidad → llama book_appointment INMEDIATAMENTE. No pidas más confirmación.
+PASO 1 — El paciente quiere agendar:
+Pregunta qué especialidad, fecha y hora prefiere (si no lo dijo). Luego llama check_availability.
 
-REGLAS CRÍTICAS:
-- Si el paciente ya dio nombre, fecha, hora y especialidad en cualquier parte de la conversación → llama book_appointment ya.
-- Si el paciente dice "sí", "esos datos", "conforme", "de acuerdo" refiriéndose a datos ya mencionados → llama book_appointment con esos datos.
-- NUNCA diagnostiques ni des consejos médicos.
-- Si mencionan urgencia médica, indícales que llamen al 131 (SAMU).
+PASO 2 — Mostraste slots disponibles:
+El paciente elige una hora. Si no sabes su nombre, pídelo con un mensaje corto.
+
+PASO 3 — ACCIÓN OBLIGATORIA: Cuando en la conversación tengas los 4 datos:
+  • nombre del paciente
+  • fecha (YYYY-MM-DD)
+  • hora (HH:MM)
+  • especialidad
+→ LLAMA book_appointment AHORA. No preguntes "¿confirmas?". No esperes otro mensaje. Solo llama la herramienta.
+
+EJEMPLO: Si el paciente dijo "el lunes 7 a las 10" y luego dice "Juan Pérez" → ya tienes todo → llama book_appointment.
+EJEMPLO: Si el paciente dice "sí esos datos" o "conforme" y la conversación ya tiene fecha+hora+especialidad+nombre → llama book_appointment.
+
+Después de llamar book_appointment, confirma al paciente con un mensaje corto indicando fecha, hora y especialidad.
+
+NUNCA diagnostiques ni des consejos médicos.
+Si mencionan urgencia médica, indícales que llamen al 131 (SAMU).
 `.trim()
       : `
 ## INSTRUCCIONES DE HERRAMIENTAS
