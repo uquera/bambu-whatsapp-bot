@@ -5,7 +5,7 @@ import { getDisponibilidad, createCita, getBoxes, createLead } from "./centrobam
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
-const MODEL = "claude-haiku-4-5-20251001"
+const MODEL = "claude-sonnet-4-6"
 const MAX_HISTORY_MESSAGES = 20
 
 // ─── Herramientas disponibles para el agente ─────────────────────────────────
