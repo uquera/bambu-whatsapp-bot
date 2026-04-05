@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
       userType: true,
       contactName: true,
       botPaused: true,
+      stage: true,
       lastMessage: true,
       lastMessageAt: true,
       unreadCount: true,
