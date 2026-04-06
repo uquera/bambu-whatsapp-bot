@@ -22,9 +22,9 @@ const STAGE_LABELS: Record<Stage, string> = {
 }
 
 const STAGE_ACTIVE: Record<Stage, string> = {
-  NUEVO: "bg-white/20 text-white border-white/50",
-  PENDIENTE: "bg-amber-400/90 text-amber-950 border-amber-300",
-  AGENDADO: "bg-emerald-400/90 text-emerald-950 border-emerald-300",
+  NUEVO: "bg-white/20 text-white border-white/40 shadow-inner",
+  PENDIENTE: "bg-orange-200/80 text-orange-900 border-orange-300/60",
+  AGENDADO: "bg-teal-200/80 text-teal-900 border-teal-300/60",
 }
 
 const USER_TYPE_LABELS: Record<string, string> = {
@@ -120,18 +120,21 @@ export default function DashboardPage() {
   const currentStage = (detail?.stage ?? "NUEVO") as Stage
 
   return (
-    <div className="h-screen flex flex-col bg-white">
+    <div className="h-screen flex flex-col" style={{ background: "#f4f6f9" }}>
       {/* ── Header dinámico ── */}
       <header
-        className="h-14 flex-shrink-0 shadow-md flex items-center px-4 gap-3"
-        style={{ backgroundColor: "var(--brand)" }}
+        className="h-14 flex-shrink-0 flex items-center px-4 gap-3"
+        style={{
+          background: "linear-gradient(135deg, #1e5299 0%, #1A4A8B 60%, #153a6d 100%)",
+          boxShadow: "0 2px 12px rgba(21,58,109,0.35)",
+        }}
       >
         {detail ? (
           <>
             {/* Botón volver */}
             <button
               onClick={() => setSelectedId(null)}
-              className="text-green-300 hover:text-white text-lg font-bold mr-1 leading-none flex-shrink-0"
+              className="text-white/70 hover:text-white text-lg font-bold mr-1 leading-none flex-shrink-0 transition-colors"
               title="Volver al listado"
             >
               ←
@@ -152,7 +155,7 @@ export default function DashboardPage() {
               <div className="flex items-center gap-1.5 mt-0.5">
                 <ChannelBadge channel={detail.channel} />
                 {detail.userType && (
-                  <span className="text-xs text-green-300">
+                  <span className="text-xs text-white/60">
                     {USER_TYPE_LABELS[detail.userType] ?? detail.userType}
                   </span>
                 )}
@@ -180,26 +183,23 @@ export default function DashboardPage() {
             <div className="ml-auto flex items-center gap-2 flex-shrink-0">
               {detail.botPaused ? (
                 <>
-                  <span className="hidden sm:inline text-xs text-amber-200 bg-amber-900/50 px-2 py-0.5 rounded-full border border-amber-500/50">
-                    ⏸ Bot pausado
+                  <span className="hidden sm:inline text-xs text-white/70 bg-white/10 px-2.5 py-1 rounded-full border border-white/20 backdrop-blur-sm">
+                    ⏸ Pausado
                   </span>
-                  <Button
-                    size="sm"
+                  <button
                     onClick={handleResume}
-                    className="bg-white/15 hover:bg-white/25 text-white border border-white/30 h-8 text-xs"
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white bg-white/15 border border-white/30 hover:bg-white/25 transition-all h-8"
                   >
-                    ▶ Reactivar bot
-                  </Button>
+                    ▶ Reactivar
+                  </button>
                 </>
               ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
                   onClick={handlePause}
-                  className="border-amber-400/70 text-amber-300 hover:bg-white/10 hover:text-amber-200 h-8 text-xs"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white/80 bg-white/10 border border-white/20 hover:bg-white/20 hover:text-white transition-all h-8"
                 >
                   ⏸ Pausar bot
-                </Button>
+                </button>
               )}
             </div>
           </>

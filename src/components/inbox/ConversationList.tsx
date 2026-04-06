@@ -38,27 +38,37 @@ function formatRelative(iso: string | null): string {
 const STAGES = ["NUEVO", "PENDIENTE", "AGENDADO"] as const
 type Stage = (typeof STAGES)[number]
 
-const STAGE_CONFIG: Record<Stage, { label: string; headerBg: string; headerText: string; dot: string; colBg: string }> = {
+const STAGE_CONFIG: Record<Stage, {
+  label: string
+  headerGradient: string
+  headerText: string
+  dot: string
+  colGradient: string
+  borderColor: string
+}> = {
   NUEVO: {
     label: "Nuevo",
-    headerBg: "#e8edf5",
+    headerGradient: "linear-gradient(135deg, #dce8f8 0%, #e8f0fb 100%)",
     headerText: "#1A4A8B",
-    dot: "#1A4A8B",
-    colBg: "#f7f9fc",
+    dot: "#4a7fc1",
+    colGradient: "linear-gradient(170deg, #f0f5ff 0%, #f7faff 60%, #f9fbff 100%)",
+    borderColor: "rgba(26,74,139,0.12)",
   },
   PENDIENTE: {
     label: "Pendiente",
-    headerBg: "#fef3c7",
-    headerText: "#92400e",
-    dot: "#f59e0b",
-    colBg: "#fffbeb",
+    headerGradient: "linear-gradient(135deg, #fde8c4 0%, #fef3e2 100%)",
+    headerText: "#7c4d00",
+    dot: "#e09b40",
+    colGradient: "linear-gradient(170deg, #fffaf2 0%, #fffcf5 60%, #fefefe 100%)",
+    borderColor: "rgba(224,155,64,0.18)",
   },
   AGENDADO: {
     label: "Agendado",
-    headerBg: "#d1fae5",
-    headerText: "#065f46",
-    dot: "#10b981",
-    colBg: "#f0fdf4",
+    headerGradient: "linear-gradient(135deg, #b8f0dd 0%, #dcfaed 100%)",
+    headerText: "#0a4d35",
+    dot: "#2dba80",
+    colGradient: "linear-gradient(170deg, #f0fdf7 0%, #f6fefb 60%, #fafffe 100%)",
+    borderColor: "rgba(45,186,128,0.18)",
   },
 }
 
@@ -79,28 +89,39 @@ export default function ConversationList({ conversations, selectedId, onSelect }
           <div
             key={stage}
             className="flex-1 flex flex-col border-r last:border-r-0 min-w-0"
-            style={{ backgroundColor: cfg.colBg }}
+            style={{ background: cfg.colGradient }}
           >
             {/* Column header */}
             <div
-              className="flex items-center justify-between px-2.5 py-2.5 flex-shrink-0 border-b"
-              style={{ backgroundColor: cfg.headerBg, borderColor: `${cfg.dot}33` }}
+              className="flex items-center justify-between px-3 py-2.5 flex-shrink-0 border-b"
+              style={{
+                background: cfg.headerGradient,
+                borderColor: cfg.borderColor,
+                boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+              }}
             >
               <div className="flex items-center gap-1.5">
                 <span
-                  className="w-2.5 h-2.5 rounded-full flex-shrink-0 shadow-sm"
-                  style={{ backgroundColor: cfg.dot }}
+                  className="w-2 h-2 rounded-full flex-shrink-0"
+                  style={{
+                    backgroundColor: cfg.dot,
+                    boxShadow: `0 0 0 3px ${cfg.dot}22`,
+                  }}
                 />
                 <span
-                  className="text-xs font-bold uppercase tracking-wider truncate"
+                  className="text-[11px] font-bold uppercase tracking-widest truncate"
                   style={{ color: cfg.headerText }}
                 >
                   {cfg.label}
                 </span>
               </div>
               <span
-                className="text-[11px] font-bold px-1.5 py-0.5 rounded-full ml-1 flex-shrink-0 shadow-inner"
-                style={{ backgroundColor: "rgba(255,255,255,0.8)", color: cfg.headerText }}
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded-full ml-1 flex-shrink-0"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.75)",
+                  color: cfg.headerText,
+                  boxShadow: "inset 0 1px 2px rgba(0,0,0,0.06)",
+                }}
               >
                 {cols.length}
               </span>
@@ -108,7 +129,7 @@ export default function ConversationList({ conversations, selectedId, onSelect }
 
             {/* Cards */}
             <ScrollArea className="flex-1">
-              <div className="p-2 space-y-2">
+              <div className="p-2 space-y-1.5">
                 {cols.length === 0 && (
                   <p className="text-center text-[11px] text-gray-300 py-8">Sin contactos</p>
                 )}
@@ -119,14 +140,20 @@ export default function ConversationList({ conversations, selectedId, onSelect }
                     <button
                       key={c.id}
                       onClick={() => onSelect(c.id)}
-                      className={`
-                        w-full text-left rounded-xl p-2.5 transition-all duration-150 border
-                        ${isSelected
-                          ? "bg-white shadow-md"
-                          : "bg-white/80 border-gray-100 hover:bg-white hover:shadow-sm"
-                        }
-                      `}
-                      style={isSelected ? { borderColor: "var(--brand)", boxShadow: "0 2px 8px rgba(26,74,139,0.15)" } : {}}
+                      className="w-full text-left rounded-xl p-2.5 transition-all duration-200"
+                      style={
+                        isSelected
+                          ? {
+                              background: "rgba(255,255,255,0.97)",
+                              border: "1px solid rgba(26,74,139,0.25)",
+                              boxShadow: "0 4px 14px rgba(26,74,139,0.13), 0 1px 3px rgba(0,0,0,0.06)",
+                            }
+                          : {
+                              background: "rgba(255,255,255,0.6)",
+                              border: "1px solid rgba(255,255,255,0.9)",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
+                            }
+                      }
                     >
                       {/* Avatar + nombre + badges */}
                       <div className="flex items-start gap-1.5">
