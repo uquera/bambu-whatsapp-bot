@@ -110,7 +110,7 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
               {/* Burbuja */}
               <div
                 className={cn(
-                  "max-w-[72%] rounded-2xl px-4 py-2.5",
+                  "max-w-[90%] sm:max-w-[72%] rounded-2xl px-4 py-2.5",
                   msg.role === "USER" && "rounded-bl-sm text-gray-800",
                   msg.role === "BOT" && "rounded-br-sm text-white",
                   msg.role === "OPERATOR" && "rounded-br-sm text-white"
@@ -165,7 +165,7 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
         <div className="flex items-center gap-1.5 mb-2">
           <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: "var(--brand)" }} />
           <span className="text-xs text-gray-400 font-medium">Respuesta de operador</span>
-          <span className="ml-auto text-[10px] text-gray-300 font-mono">Ctrl+Enter para enviar</span>
+          <span className="ml-auto hidden md:inline text-[10px] text-gray-300 font-mono">Ctrl+Enter para enviar</span>
         </div>
         <div className="flex gap-2 items-end">
           <Textarea
@@ -174,7 +174,7 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
             onKeyDown={handleKeyDown}
             placeholder="Escribe tu respuesta..."
             rows={2}
-            className="flex-1 resize-none text-sm rounded-xl border-gray-200 focus-visible:ring-green-500 focus-visible:ring-2 focus-visible:border-green-400 placeholder:text-gray-400 min-h-[60px] max-h-[120px]"
+            className="flex-1 resize-none text-sm rounded-xl border-gray-200 focus-visible:ring-green-500 focus-visible:ring-2 focus-visible:border-green-400 placeholder:text-gray-400 min-h-[50px] sm:min-h-[60px] max-h-[120px]"
           />
           <Button
             onClick={handleReply}

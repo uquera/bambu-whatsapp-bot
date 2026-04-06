@@ -134,7 +134,7 @@ export default function DashboardPage() {
             {/* Botón volver */}
             <button
               onClick={() => setSelectedId(null)}
-              className="text-white/70 hover:text-white text-lg font-bold mr-1 leading-none flex-shrink-0 transition-colors"
+              className="text-white/70 hover:text-white text-lg font-bold mr-1 leading-none flex-shrink-0 transition-colors p-2 -ml-2"
               title="Volver al listado"
             >
               ←
@@ -162,8 +162,8 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Stage pills */}
-            <div className="flex items-center gap-1 ml-4">
+            {/* Stage pills — ocultos en mobile, visibles desde md */}
+            <div className="hidden md:flex items-center gap-1 ml-4">
               {STAGES.map((s) => (
                 <button
                   key={s}
@@ -209,7 +209,7 @@ export default function DashboardPage() {
             <span className="text-xl">🌿</span>
             <span className="text-lg font-bold text-white tracking-tight">Bambú CRM</span>
             <div className="ml-auto flex items-center gap-2">
-              <span className="text-green-200 text-sm">
+              <span className="hidden sm:inline text-green-200 text-sm">
                 {conversations.length} conversación{conversations.length !== 1 ? "es" : ""}
               </span>
               {unreadCount > 0 && (
@@ -224,8 +224,8 @@ export default function DashboardPage() {
 
       {/* ── Body ── */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Sidebar Kanban */}
-        <aside className="w-[540px] flex-shrink-0 border-r overflow-hidden shadow-md z-10">
+        {/* Sidebar Kanban — full screen on mobile until conversation selected */}
+        <aside className={`flex-shrink-0 border-r overflow-hidden shadow-md z-10 w-full md:w-80 lg:w-[540px] flex-col ${selectedId ? "hidden md:flex" : "flex"}`}>
           <ConversationList
             conversations={conversations}
             selectedId={selectedId}
@@ -233,8 +233,8 @@ export default function DashboardPage() {
           />
         </aside>
 
-        {/* Panel de chat */}
-        <main className="flex-1 flex flex-col overflow-hidden min-w-0">
+        {/* Panel de chat — full screen on mobile when conversation selected */}
+        <main className={`flex-1 overflow-hidden min-w-0 flex-col ${selectedId ? "flex" : "hidden md:flex"}`}>
           <MessageThread
             conversation={detail}
             onReplySent={() => {
