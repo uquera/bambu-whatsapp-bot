@@ -77,12 +77,15 @@ a {
 }
 
 /* ============================================
-   BAMBÚ CRM — TEMA VERDE CORPORATIVO (oklch)
-   green-800 ≈ oklch(0.374 0.143 143.5)
-   green-700 ≈ oklch(0.448 0.183 142.5)
-   green-600 ≈ oklch(0.523 0.200 142.5)
-   green-100 ≈ oklch(0.962 0.044 145.5)
+   BAMBÚ CRM — PALETA CORPORATIVA
+   Brand azul: #1A4A8B (mismo que centro-bambu-demo)
+   Verde se mantiene solo para WhatsApp / bot
    ============================================ */
+:root {
+  --brand: #1A4A8B;
+  --brand-dark: #153a6d;
+  --brand-light: #EEF2FA;
+}
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

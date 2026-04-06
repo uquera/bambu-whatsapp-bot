@@ -22,9 +22,9 @@ const STAGE_LABELS: Record<Stage, string> = {
 }
 
 const STAGE_ACTIVE: Record<Stage, string> = {
-  NUEVO: "bg-gray-200 text-gray-800 border-gray-300",
-  PENDIENTE: "bg-amber-200 text-amber-900 border-amber-300",
-  AGENDADO: "bg-emerald-200 text-emerald-900 border-emerald-300",
+  NUEVO: "bg-white/20 text-white border-white/50",
+  PENDIENTE: "bg-amber-400/90 text-amber-950 border-amber-300",
+  AGENDADO: "bg-emerald-400/90 text-emerald-950 border-emerald-300",
 }
 
 const USER_TYPE_LABELS: Record<string, string> = {
@@ -122,7 +122,10 @@ export default function DashboardPage() {
   return (
     <div className="h-screen flex flex-col bg-white">
       {/* ── Header dinámico ── */}
-      <header className="h-14 flex-shrink-0 bg-green-800 shadow-md flex items-center px-4 gap-3">
+      <header
+        className="h-14 flex-shrink-0 shadow-md flex items-center px-4 gap-3"
+        style={{ backgroundColor: "var(--brand)" }}
+      >
         {detail ? (
           <>
             {/* Botón volver */}
@@ -165,7 +168,7 @@ export default function DashboardPage() {
                   className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border transition-all duration-150
                     ${currentStage === s
                       ? STAGE_ACTIVE[s]
-                      : "border-green-600 text-green-300 hover:text-white hover:border-green-400"
+                      : "border-white/25 text-white/60 hover:text-white hover:border-white/50"
                     }`}
                 >
                   {STAGE_LABELS[s]}
@@ -177,13 +180,13 @@ export default function DashboardPage() {
             <div className="ml-auto flex items-center gap-2 flex-shrink-0">
               {detail.botPaused ? (
                 <>
-                  <span className="hidden sm:inline text-xs text-amber-300 bg-amber-900/40 px-2 py-0.5 rounded-full border border-amber-600">
+                  <span className="hidden sm:inline text-xs text-amber-200 bg-amber-900/50 px-2 py-0.5 rounded-full border border-amber-500/50">
                     ⏸ Bot pausado
                   </span>
                   <Button
                     size="sm"
                     onClick={handleResume}
-                    className="bg-green-600 hover:bg-green-500 text-white h-8 text-xs"
+                    className="bg-white/15 hover:bg-white/25 text-white border border-white/30 h-8 text-xs"
                   >
                     ▶ Reactivar bot
                   </Button>
@@ -193,7 +196,7 @@ export default function DashboardPage() {
                   variant="outline"
                   size="sm"
                   onClick={handlePause}
-                  className="border-amber-400 text-amber-300 hover:bg-green-700 hover:text-amber-200 h-8 text-xs"
+                  className="border-amber-400/70 text-amber-300 hover:bg-white/10 hover:text-amber-200 h-8 text-xs"
                 >
                   ⏸ Pausar bot
                 </Button>
@@ -222,7 +225,7 @@ export default function DashboardPage() {
       {/* ── Body ── */}
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar Kanban */}
-        <aside className="w-[540px] flex-shrink-0 border-r overflow-hidden">
+        <aside className="w-[540px] flex-shrink-0 border-r overflow-hidden shadow-md z-10">
           <ConversationList
             conversations={conversations}
             selectedId={selectedId}

@@ -48,10 +48,14 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
 
   if (!conversation) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-gray-50 text-gray-400">
-        <span className="text-5xl">🌿</span>
-        <p className="text-sm font-medium">Selecciona una conversación</p>
-        <p className="text-xs text-gray-300">Los mensajes aparecerán aquí</p>
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 bg-gray-50/80 text-gray-400">
+        <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center">
+          <span className="text-3xl">🌿</span>
+        </div>
+        <div className="text-center">
+          <p className="text-sm font-semibold text-gray-500">Selecciona una conversación</p>
+          <p className="text-xs text-gray-300 mt-1">Los mensajes aparecerán aquí</p>
+        </div>
       </div>
     )
   }
@@ -84,7 +88,7 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
   return (
     <div className="flex flex-col h-full">
       {/* ── Área de mensajes ── */}
-      <ScrollArea className="flex-1 bg-gray-50">
+      <ScrollArea className="flex-1" style={{ background: "linear-gradient(to bottom, #f8fafc, #f1f5f9)" }}>
         <div className="px-4 py-4 space-y-3">
           {conversation.messages.length === 0 && (
             <p className="text-center text-sm text-gray-400 mt-12">Sin mensajes aún</p>
@@ -100,8 +104,9 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
                   "max-w-[72%] rounded-2xl px-4 py-2.5 shadow-sm",
                   msg.role === "USER" && "rounded-bl-sm bg-white text-gray-800 border border-gray-100",
                   msg.role === "BOT" && "rounded-br-sm bg-green-600 text-white",
-                  msg.role === "OPERATOR" && "rounded-br-sm bg-blue-600 text-white"
+                  msg.role === "OPERATOR" && "rounded-br-sm text-white"
                 )}
+                style={msg.role === "OPERATOR" ? { backgroundColor: "var(--brand)" } : undefined}
               >
                 {msg.role !== "USER" && (
                   <span className={`text-[11px] font-semibold block mb-1 ${
@@ -124,9 +129,9 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
       </ScrollArea>
 
       {/* ── Input del operador ── */}
-      <div className="flex-shrink-0 border-t bg-white px-3 py-3 shadow-md">
+      <div className="flex-shrink-0 border-t bg-white px-3 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
         <div className="flex items-center gap-1.5 mb-2">
-          <span className="w-2 h-2 rounded-full bg-blue-500 flex-shrink-0" />
+          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: "var(--brand)" }} />
           <span className="text-xs text-gray-400 font-medium">Respuesta de operador</span>
           <span className="ml-auto text-[10px] text-gray-300 font-mono">Ctrl+Enter para enviar</span>
         </div>
@@ -143,7 +148,8 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
             onClick={handleReply}
             disabled={!replyText.trim() || sending}
             title="Enviar (Ctrl+Enter)"
-            className="bg-green-700 hover:bg-green-800 text-white rounded-xl h-[60px] w-11 p-0 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+            className="text-white rounded-xl h-[60px] w-11 p-0 disabled:opacity-40 disabled:cursor-not-allowed shadow-sm hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: "var(--brand)" }}
           >
             {sending ? (
               <span className="text-xs">...</span>
