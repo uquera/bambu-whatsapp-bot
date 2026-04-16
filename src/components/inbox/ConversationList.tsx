@@ -41,6 +41,7 @@ type Stage = (typeof STAGES)[number]
 
 const STAGE_CONFIG: Record<Stage, {
   label: string
+  icon: string
   headerGradient: string
   headerText: string
   dot: string
@@ -51,6 +52,7 @@ const STAGE_CONFIG: Record<Stage, {
 }> = {
   NUEVO: {
     label: "Nuevo",
+    icon: "✦",
     headerGradient: "linear-gradient(135deg, #dce8f8 0%, #e8f0fb 100%)",
     headerText: "#1A4A8B",
     dot: "#4a7fc1",
@@ -61,6 +63,7 @@ const STAGE_CONFIG: Record<Stage, {
   },
   PENDIENTE: {
     label: "Pendiente",
+    icon: "⏳",
     headerGradient: "linear-gradient(135deg, #fde8c4 0%, #fef3e2 100%)",
     headerText: "#7c4d00",
     dot: "#e09b40",
@@ -71,6 +74,7 @@ const STAGE_CONFIG: Record<Stage, {
   },
   AGENDADO: {
     label: "Agendado",
+    icon: "✓",
     headerGradient: "linear-gradient(135deg, #b8f0dd 0%, #dcfaed 100%)",
     headerText: "#0a4d35",
     dot: "#2dba80",
@@ -123,10 +127,10 @@ function KanbanColumn({
             }}
           />
           <span
-            className="text-[11px] font-bold uppercase tracking-wide truncate"
+            className="text-xs font-bold uppercase tracking-wide truncate"
             style={{ color: cfg.headerText }}
           >
-            {cfg.label}
+            {cfg.icon} {cfg.label}
           </span>
         </div>
         <span
@@ -154,7 +158,7 @@ function KanbanColumn({
               <button
                 key={c.id}
                 onClick={() => onSelect(c.id)}
-                className="w-full text-left rounded-xl p-2.5 transition-all duration-200"
+                className="w-full text-left rounded-xl p-3 transition-all duration-200 hover:scale-[1.01]"
                 style={
                   isSelected
                     ? {
@@ -163,31 +167,31 @@ function KanbanColumn({
                         boxShadow: "0 4px 14px rgba(26,74,139,0.13), 0 1px 3px rgba(0,0,0,0.06)",
                       }
                     : {
-                        background: "rgba(255,255,255,0.6)",
+                        background: "rgba(255,255,255,0.65)",
                         border: "1px solid rgba(255,255,255,0.9)",
                         boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
                       }
                 }
               >
                 {/* Avatar + nombre + badges */}
-                <div className="flex items-start gap-1.5">
-                  <Avatar className={`h-7 w-7 flex-shrink-0 ${avatarColor}`}>
-                    <AvatarFallback className={`text-[9px] font-bold ${avatarColor}`}>
+                <div className="flex items-start gap-2">
+                  <Avatar className={`h-9 w-9 flex-shrink-0 ${avatarColor}`}>
+                    <AvatarFallback className={`text-[11px] font-bold ${avatarColor}`}>
                       {getContactInitials(c.contactName, c.channelId)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1">
-                      <span className={`text-xs truncate ${c.unreadCount > 0 ? "font-bold text-gray-900" : "font-semibold text-gray-700"}`}>
+                      <span className={`text-sm truncate ${c.unreadCount > 0 ? "font-bold text-gray-900" : "font-semibold text-gray-700"}`}>
                         {c.contactName ?? c.channelId}
                       </span>
                       <div className="flex items-center gap-0.5 flex-shrink-0">
                         {c.botPaused && (
-                          <span title="Bot pausado" className="text-amber-400 text-[10px] leading-none">⏸</span>
+                          <span title="Bot pausado" className="text-amber-400 text-xs leading-none">⏸</span>
                         )}
                         {c.unreadCount > 0 && (
                           <span
-                            className="text-white text-[9px] font-bold rounded-full px-1 py-0.5 min-w-[15px] text-center leading-none"
+                            className="text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center leading-none"
                             style={{ backgroundColor: "var(--brand)" }}
                           >
                             {c.unreadCount}
@@ -196,12 +200,12 @@ function KanbanColumn({
                       </div>
                     </div>
                     {/* Preview + tiempo */}
-                    <p className={`text-[10px] truncate mt-0.5 ${c.unreadCount > 0 ? "text-gray-600 font-medium" : "text-gray-400"}`}>
+                    <p className={`text-xs truncate mt-0.5 ${c.unreadCount > 0 ? "text-gray-600 font-medium" : "text-gray-400"}`}>
                       {c.lastMessage ?? "—"}
                     </p>
-                    <div className="flex items-center justify-between mt-1">
+                    <div className="flex items-center justify-between mt-1.5">
                       <ChannelBadge channel={c.channel} />
-                      <span className="hidden sm:inline text-[9px] text-gray-400">{formatRelative(c.lastMessageAt)}</span>
+                      <span className="hidden sm:inline text-[10px] text-gray-400">{formatRelative(c.lastMessageAt)}</span>
                     </div>
                   </div>
                 </div>
@@ -235,7 +239,7 @@ export default function ConversationList({ conversations, selectedId, onSelect }
             <button
               key={s}
               onClick={() => setActiveTab(s)}
-              className={`flex-1 py-2.5 text-[11px] font-bold uppercase tracking-wide border-b-2 transition-colors ${
+              className={`flex-1 py-2.5 text-xs font-bold uppercase tracking-wide border-b-2 transition-colors ${
                 isActive ? cfg.tabActive : "border-transparent text-gray-400"
               }`}
             >

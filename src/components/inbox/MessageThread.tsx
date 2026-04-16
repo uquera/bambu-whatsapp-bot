@@ -53,17 +53,17 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
         style={{ background: "linear-gradient(160deg, #f5f7fa 0%, #eef1f6 40%, #e8ecf3 100%)" }}
       >
         <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center"
+          className="w-20 h-20 rounded-3xl flex items-center justify-center"
           style={{
-            background: "rgba(255,255,255,0.85)",
-            boxShadow: "0 4px 20px rgba(26,74,139,0.1), 0 1px 4px rgba(0,0,0,0.06)",
+            background: "rgba(255,255,255,0.90)",
+            boxShadow: "0 8px 32px rgba(26,74,139,0.12), 0 2px 8px rgba(0,0,0,0.06)",
           }}
         >
-          <span className="text-3xl">🌿</span>
+          <span className="text-4xl">🌿</span>
         </div>
         <div className="text-center">
-          <p className="text-sm font-semibold text-gray-400">Selecciona una conversación</p>
-          <p className="text-xs text-gray-300 mt-1">Los mensajes aparecerán aquí</p>
+          <p className="text-sm font-semibold text-gray-500">Selecciona una conversación</p>
+          <p className="text-xs text-gray-400 mt-1">Los mensajes aparecerán aquí</p>
         </div>
       </div>
     )

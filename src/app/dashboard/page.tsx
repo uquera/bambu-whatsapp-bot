@@ -206,14 +206,23 @@ export default function DashboardPage() {
         ) : (
           // Header de marca — sin conversación seleccionada
           <>
-            <span className="text-xl">🌿</span>
-            <span className="text-lg font-bold text-white tracking-tight">Bambú CRM</span>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-xl border border-white/25 flex-shrink-0 shadow-inner">
+                {process.env.NEXT_PUBLIC_BOT_EMOJI ?? "🌿"}
+              </div>
+              <div className="min-w-0">
+                <span className="text-base font-bold text-white tracking-tight leading-tight block">
+                  {process.env.NEXT_PUBLIC_BOT_NAME ?? "Bambú"} CRM
+                </span>
+                <span className="text-[11px] text-white/55 leading-none">Centro de mensajería</span>
+              </div>
+            </div>
             <div className="ml-auto flex items-center gap-2">
-              <span className="hidden sm:inline text-green-200 text-sm">
+              <span className="hidden sm:inline text-white/60 text-xs bg-white/10 px-2.5 py-1 rounded-full border border-white/15">
                 {conversations.length} conversación{conversations.length !== 1 ? "es" : ""}
               </span>
               {unreadCount > 0 && (
-                <span className="bg-white text-green-800 text-xs font-bold rounded-full px-2 py-0.5">
+                <span className="bg-white text-blue-900 text-xs font-bold rounded-full px-2.5 py-1 shadow-sm">
                   {unreadCount} sin leer
                 </span>
               )}
