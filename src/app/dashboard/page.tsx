@@ -120,7 +120,7 @@ export default function DashboardPage() {
   const currentStage = (detail?.stage ?? "NUEVO") as Stage
 
   return (
-    <div className="h-screen flex flex-col" style={{ background: "#f4f6f9" }}>
+    <div className="h-screen flex flex-col" style={{ background: "#EDE8E2" }}>
       {/* ── Header dinámico ── */}
       <header
         className="h-14 flex-shrink-0 flex items-center px-4 gap-3"

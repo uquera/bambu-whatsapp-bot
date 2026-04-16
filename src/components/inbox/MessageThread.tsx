@@ -50,7 +50,7 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
     return (
       <div
         className="flex-1 flex flex-col items-center justify-center gap-4 text-gray-400"
-        style={{ background: "linear-gradient(160deg, #f5f7fa 0%, #eef1f6 40%, #e8ecf3 100%)" }}
+        style={{ background: "linear-gradient(160deg, #f5f1ec 0%, #ede8e2 40%, #e8e2db 100%)" }}
       >
         <div
           className="w-20 h-20 rounded-3xl flex items-center justify-center"
@@ -97,7 +97,7 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
   return (
     <div className="flex flex-col h-full">
       {/* ── Área de mensajes ── */}
-      <ScrollArea className="flex-1" style={{ background: "linear-gradient(160deg, #f5f7fa 0%, #eef1f6 40%, #e8ecf3 100%)" }}>
+      <ScrollArea className="flex-1" style={{ background: "linear-gradient(160deg, #f5f1ec 0%, #ede8e2 40%, #e8e2db 100%)" }}>
         <div className="px-4 py-4 space-y-3">
           {conversation.messages.length === 0 && (
             <p className="text-center text-sm text-gray-400 mt-12">Sin mensajes aún</p>
@@ -157,7 +157,7 @@ export default function MessageThread({ conversation, onReplySent }: Props) {
       <div
         className="flex-shrink-0 border-t px-3 py-3"
         style={{
-          background: "linear-gradient(to bottom, #ffffff 0%, #f8fafc 100%)",
+          background: "linear-gradient(to bottom, #ffffff 0%, #f5f0eb 100%)",
           boxShadow: "0 -4px 20px rgba(0,0,0,0.07)",
           borderColor: "rgba(0,0,0,0.07)",
         }}

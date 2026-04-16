@@ -53,13 +53,13 @@ const STAGE_CONFIG: Record<Stage, {
   NUEVO: {
     label: "Nuevo",
     icon: "✦",
-    headerGradient: "linear-gradient(135deg, #dce8f8 0%, #e8f0fb 100%)",
-    headerText: "#1A4A8B",
-    dot: "#4a7fc1",
-    colGradient: "linear-gradient(170deg, #f0f5ff 0%, #f7faff 60%, #f9fbff 100%)",
-    borderColor: "rgba(26,74,139,0.12)",
-    tabActive: "border-blue-600 text-blue-700",
-    tabText: "#1A4A8B",
+    headerGradient: "linear-gradient(135deg, #e5dfd8 0%, #ece7e1 100%)",
+    headerText: "#4a3d30",
+    dot: "#9a8a78",
+    colGradient: "linear-gradient(170deg, #f2ede8 0%, #f6f2ed 60%, #f9f6f3 100%)",
+    borderColor: "rgba(120,100,80,0.14)",
+    tabActive: "border-stone-500 text-stone-700",
+    tabText: "#4a3d30",
   },
   PENDIENTE: {
     label: "Pendiente",
@@ -229,7 +229,7 @@ export default function ConversationList({ conversations, selectedId, onSelect }
       {/* ── Tab bar — solo en mobile (<md) ── */}
       <div
         className="flex md:hidden flex-shrink-0 border-b"
-        style={{ background: "rgba(255,255,255,0.95)", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+        style={{ background: "rgba(245,240,235,0.97)", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
       >
         {STAGES.map((s) => {
           const cfg = STAGE_CONFIG[s]
