@@ -53,7 +53,7 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "book_appointment",
     description:
-      "Crea una solicitud de cita para el paciente en el centro clínico. Úsalo SOLO después de que el paciente confirme hora, fecha, especialidad y hayas obtenido su nombre y email. La cita queda PENDIENTE — el equipo del centro la confirma.",
+      "Crea una solicitud de cita NUEVA para el paciente. Úsalo SOLO para citas nuevas (paciente sin citas activas o que quiere una cita adicional). ⚠️ NUNCA uses esta herramienta para reagendar — si el paciente ya tiene una cita y quiere cambiar horario, usa reschedule_appointment. La cita queda PENDIENTE — el equipo del centro la confirma.",
     input_schema: {
       type: "object" as const,
       properties: {
@@ -183,12 +183,37 @@ async function executeTool(
 
     case "cancel_appointment": {
       const result = await cancelarCita(input.citaId)
-      return JSON.stringify(result)
+      if (result.ok) {
+        return JSON.stringify({
+          ok: true,
+          citaId: input.citaId,
+          mensaje: `ÉXITO: La cita (ID: ${input.citaId}) fue CANCELADA en el sistema. El profesional ya fue notificado automáticamente. El paciente NO necesita llamar al centro ni hacer nada más.`,
+        })
+      }
+      return JSON.stringify({
+        ok: false,
+        error: result.error,
+        mensaje: `ERROR al cancelar la cita ${input.citaId}: ${result.error}.`,
+      })
     }
 
     case "reschedule_appointment": {
       const result = await reagendarCita(input.citaId, input.nuevaFecha, input.nuevaHora)
-      return JSON.stringify(result)
+      if (result.ok) {
+        return JSON.stringify({
+          ok: true,
+          citaId: input.citaId,
+          nuevaFecha: input.nuevaFecha,
+          nuevaHora: input.nuevaHora,
+          fechaConfirmada: result.fecha,
+          mensaje: `ÉXITO: La cita (ID: ${input.citaId}) fue MODIFICADA DIRECTAMENTE en el sistema al nuevo horario ${input.nuevaFecha} ${input.nuevaHora}. La cita anterior ya NO existe como entrada separada — fue actualizada in-place. No hay nada más que eliminar. El paciente NO necesita hacer nada adicional.`,
+        })
+      }
+      return JSON.stringify({
+        ok: false,
+        error: result.error,
+        mensaje: `ERROR al reagendar la cita ${input.citaId}: ${result.error}. Informa al paciente y sugiere intentar más tarde o contactar al centro.`,
+      })
     }
 
     case "get_box_info": {
