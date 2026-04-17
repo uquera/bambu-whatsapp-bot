@@ -93,7 +93,7 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "reschedule_appointment",
     description:
-      "Reagenda una cita existente a una nueva fecha y hora. Úsalo SOLO después de: 1) identificar la cita con get_my_appointments, 2) verificar disponibilidad con check_availability, 3) obtener confirmación explícita del paciente.",
+      "MODIFICA la fecha/hora de una cita existente. NO crea una cita nueva ni deja la anterior pendiente — actualiza la misma cita al nuevo horario. Úsalo SOLO después de: 1) identificar la cita con get_my_appointments, 2) verificar disponibilidad con check_availability, 3) obtener confirmación explícita del paciente. NUNCA uses book_appointment para reagendar.",
     input_schema: {
       type: "object" as const,
       properties: {
