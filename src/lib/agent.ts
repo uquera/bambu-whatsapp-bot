@@ -81,7 +81,7 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "cancel_appointment",
     description:
-      "Cancela una cita del paciente. Úsalo SOLO después de que el paciente confirme EXPLÍCITAMENTE que desea cancelar (ej: 'sí, cancela' o 'confirmo la cancelación'). Antes de llamar esta tool, usa get_my_appointments para mostrarle sus citas al paciente.",
+      "CANCELA la cita del paciente directamente en el sistema. Tú lo haces todo — el paciente no necesita llamar ni contactar al centro. Úsalo SOLO después de que el paciente confirme EXPLÍCITAMENTE que desea cancelar. Antes de llamar esta tool, usa get_my_appointments para identificar la cita.",
     input_schema: {
       type: "object" as const,
       properties: {
