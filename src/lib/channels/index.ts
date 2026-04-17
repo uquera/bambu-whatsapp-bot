@@ -35,8 +35,12 @@ export async function sendButtons(
   }
 }
 
+const _bizName  = process.env.BOT_BUSINESS_NAME  ?? "el Centro"
+const _bizEmoji = process.env.BOT_BUSINESS_EMOJI ?? "🏥"
+
 export const WELCOME_BODY =
-  "¡Hola! Soy *Bambu* 🌿, el asistente virtual del Centro Clínico Bambú.\n\n¿Cómo puedo ayudarte hoy?"
+  process.env.BOT_BUSINESS_WELCOME
+    ?? `¡Hola! Soy el asistente virtual de *${_bizName}* ${_bizEmoji}\n\n¿Cómo puedo ayudarte hoy?`
 
 export const WELCOME_BUTTONS: Button[] = [
   { id: "TIPO_PACIENTE", title: "Soy paciente" },

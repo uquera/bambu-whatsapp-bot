@@ -32,9 +32,10 @@ export interface CitaInput {
   pacienteEmail?: string
   pacienteTelefono?: string
   whatsappId?: string
-  fecha: string       // YYYY-MM-DD
-  hora: string        // HH:MM
+  fecha: string          // YYYY-MM-DD
+  hora: string           // HH:MM
   especialidad: string
+  motivoConsulta?: string
 }
 
 export interface CitaResult {
@@ -168,5 +169,77 @@ export async function createPacienteLead(data: PacienteLeadInput): Promise<void>
     if (!res.ok) console.warn(`[centrobambu] createPacienteLead error ${res.status}`)
   } catch (err) {
     console.warn("[centrobambu] createPacienteLead falló:", err)
+  }
+}
+
+// ─── Consulta de citas del paciente ──────────────────────────────────────────
+
+export interface CitaResumen {
+  id: string
+  fecha: string
+  duracion: number
+  estado: string
+  modalidad: string
+  motivoConsulta: string | null
+  profesional: { id: string; nombre: string | null } | null
+  box: string | null
+}
+
+export async function getCitas(params: {
+  whatsappId?: string
+  estado?: string
+  desde?: string
+}): Promise<CitaResumen[]> {
+  try {
+    const p = new URLSearchParams()
+    if (params.whatsappId) p.set("whatsappId", params.whatsappId)
+    if (params.estado)     p.set("estado", params.estado)
+    if (params.desde)      p.set("desde", params.desde)
+    const res = await fetch(`${BASE}/api/bambu/citas?${p}`, { headers: headers() })
+    if (!res.ok) throw new Error(`Status ${res.status}`)
+    return res.json()
+  } catch (err) {
+    console.warn("[centrobambu] getCitas falló:", err)
+    return []
+  }
+}
+
+// ─── Cancelar cita ────────────────────────────────────────────────────────────
+
+export async function cancelarCita(citaId: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${BASE}/api/bambu/citas/${citaId}`, {
+      method: "DELETE",
+      headers: headers(),
+    })
+    const data = await res.json()
+    if (!res.ok) return { ok: false, error: data.error ?? `Error ${res.status}` }
+    return { ok: true }
+  } catch (err) {
+    console.warn("[centrobambu] cancelarCita falló:", err)
+    return { ok: false, error: "Error de red" }
+  }
+}
+
+// ─── Reagendar cita ───────────────────────────────────────────────────────────
+
+export async function reagendarCita(
+  citaId: string,
+  nuevaFecha: string,
+  nuevaHora: string
+): Promise<{ ok: boolean; fecha?: string; error?: string }> {
+  try {
+    const nuevaFechaHora = `${nuevaFecha}T${nuevaHora}:00`
+    const res = await fetch(`${BASE}/api/bambu/citas/${citaId}`, {
+      method: "PATCH",
+      headers: headers(),
+      body: JSON.stringify({ nuevaFecha: nuevaFechaHora, estado: "REAGENDADA" }),
+    })
+    const data = await res.json()
+    if (!res.ok) return { ok: false, error: data.error ?? `Error ${res.status}` }
+    return { ok: true, fecha: data.fecha }
+  } catch (err) {
+    console.warn("[centrobambu] reagendarCita falló:", err)
+    return { ok: false, error: "Error de red" }
   }
 }

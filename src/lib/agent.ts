@@ -1,12 +1,27 @@
 import Anthropic from "@anthropic-ai/sdk"
 import type { Message } from "@prisma/client"
 import { buildSystemPrompt, CLASSIFICATION_PROMPT } from "./prompts"
-import { getDisponibilidad, createCita, getBoxes, createLead } from "./centrobambu"
+import {
+  getDisponibilidad,
+  createCita,
+  getBoxes,
+  createLead,
+  getCitas,
+  cancelarCita,
+  reagendarCita,
+} from "./centrobambu"
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
 const MODEL = "claude-sonnet-4-6"
 const MAX_HISTORY_MESSAGES = 20
+
+// ─── Contexto de la conversación (channelId para tools de citas) ─────────────
+
+export interface AgentContext {
+  channelId: string
+  channel: string
+}
 
 // ─── Herramientas disponibles para el agente ─────────────────────────────────
 
@@ -38,18 +53,55 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
   {
     name: "book_appointment",
     description:
-      "Agenda una cita para el paciente en el centro clínico. Úsalo SOLO después de que el paciente confirme la hora y fecha.",
+      "Crea una solicitud de cita para el paciente en el centro clínico. Úsalo SOLO después de que el paciente confirme hora, fecha, especialidad y hayas obtenido su nombre y email. La cita queda PENDIENTE — el equipo del centro la confirma.",
     input_schema: {
       type: "object" as const,
       properties: {
         pacienteNombre: { type: "string", description: "Nombre completo del paciente" },
-        pacienteEmail: { type: "string", description: "Correo electrónico del paciente, necesario para enviarle la confirmación" },
-        pacienteTelefono: { type: "string", description: "Teléfono del paciente en formato E.164" },
+        pacienteEmail: { type: "string", description: "Correo electrónico del paciente para enviar la confirmación" },
+        pacienteTelefono: { type: "string", description: "Teléfono del paciente en formato E.164 (opcional)" },
         fecha: { type: "string", description: "Fecha en formato YYYY-MM-DD" },
-        hora: { type: "string", description: "Hora en formato HH:MM — debe ser la hora exacta que check_availability confirmó como disponible=true" },
+        hora: { type: "string", description: "Hora en formato HH:MM — debe ser la hora que check_availability confirmó como disponible=true" },
         especialidad: { type: "string", description: "Especialidad médica" },
+        motivoConsulta: { type: "string", description: "Motivo de consulta o descripción breve de lo que el paciente quiere trabajar o tratar (opcional pero recomendado)" },
       },
       required: ["pacienteNombre", "pacienteEmail", "fecha", "hora", "especialidad"],
+    },
+  },
+  {
+    name: "get_my_appointments",
+    description:
+      "Consulta las próximas citas del paciente actual. Úsalo cuando el paciente quiera ver sus citas, o antes de cancelar/reagendar para identificar cuál es la cita correcta.",
+    input_schema: {
+      type: "object" as const,
+      properties: {},
+      required: [],
+    },
+  },
+  {
+    name: "cancel_appointment",
+    description:
+      "Cancela una cita del paciente. Úsalo SOLO después de que el paciente confirme EXPLÍCITAMENTE que desea cancelar (ej: 'sí, cancela' o 'confirmo la cancelación'). Antes de llamar esta tool, usa get_my_appointments para mostrarle sus citas al paciente.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        citaId: { type: "string", description: "ID de la cita a cancelar (obtenido de get_my_appointments)" },
+      },
+      required: ["citaId"],
+    },
+  },
+  {
+    name: "reschedule_appointment",
+    description:
+      "Reagenda una cita existente a una nueva fecha y hora. Úsalo SOLO después de: 1) identificar la cita con get_my_appointments, 2) verificar disponibilidad con check_availability, 3) obtener confirmación explícita del paciente.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        citaId: { type: "string", description: "ID de la cita a reagendar (obtenido de get_my_appointments)" },
+        nuevaFecha: { type: "string", description: "Nueva fecha en formato YYYY-MM-DD" },
+        nuevaHora: { type: "string", description: "Nueva hora en formato HH:MM — debe ser la hora que check_availability confirmó como disponible=true" },
+      },
+      required: ["citaId", "nuevaFecha", "nuevaHora"],
     },
   },
   {
@@ -79,11 +131,12 @@ const AGENT_TOOLS: Anthropic.Tool[] = [
   },
 ]
 
-// ─── Ejecutor de tools (stub — se completa en Fase 4 con centrobambu.ts) ────
+// ─── Ejecutor de tools ────────────────────────────────────────────────────────
 
 async function executeTool(
   name: string,
-  input: Record<string, string>
+  input: Record<string, string>,
+  context?: AgentContext
 ): Promise<string> {
   switch (name) {
     case "check_availability": {
@@ -107,11 +160,34 @@ async function executeTool(
         pacienteNombre: input.pacienteNombre,
         pacienteEmail: input.pacienteEmail,
         pacienteTelefono: input.pacienteTelefono,
-        whatsappId: input.whatsappId,
+        whatsappId: context?.channelId,
         fecha: input.fecha,
         hora: input.hora,
         especialidad: input.especialidad,
+        motivoConsulta: input.motivoConsulta,
       })
+      return JSON.stringify(result)
+    }
+
+    case "get_my_appointments": {
+      if (!context?.channelId) {
+        return JSON.stringify({ error: "No se pudo identificar al paciente", citas: [] })
+      }
+      const ahora = new Date().toISOString()
+      const citas = await getCitas({ whatsappId: context.channelId, desde: ahora })
+      if (citas.length === 0) {
+        return JSON.stringify({ mensaje: "El paciente no tiene citas próximas", citas: [] })
+      }
+      return JSON.stringify({ citas })
+    }
+
+    case "cancel_appointment": {
+      const result = await cancelarCita(input.citaId)
+      return JSON.stringify(result)
+    }
+
+    case "reschedule_appointment": {
+      const result = await reagendarCita(input.citaId, input.nuevaFecha, input.nuevaHora)
       return JSON.stringify(result)
     }
 
@@ -144,7 +220,7 @@ async function executeTool(
 export function buildMessages(dbMessages: Message[]): Anthropic.MessageParam[] {
   return dbMessages
     .slice(-MAX_HISTORY_MESSAGES)
-    .filter((m) => m.role !== "OPERATOR") // El operador no forma parte del contexto del agente
+    .filter((m) => m.role !== "OPERATOR")
     .map((m) => ({
       role: m.role === "USER" ? ("user" as const) : ("assistant" as const),
       content: m.content,
@@ -156,7 +232,8 @@ export function buildMessages(dbMessages: Message[]): Anthropic.MessageParam[] {
 export async function runAgent(
   userType: "PACIENTE" | "PROFESIONAL",
   history: Anthropic.MessageParam[],
-  newUserMessage: string
+  newUserMessage: string,
+  context?: AgentContext
 ): Promise<string> {
   const systemPrompt = await buildSystemPrompt(userType)
 
@@ -166,7 +243,7 @@ export async function runAgent(
   ]
 
   // Tool use loop: Claude puede llamar herramientas varias veces antes de responder texto
-  for (let iteration = 0; iteration < 5; iteration++) {
+  for (let iteration = 0; iteration < 8; iteration++) {
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 1024,
@@ -186,10 +263,8 @@ export async function runAgent(
 
     // Claude quiere usar una tool
     if (response.stop_reason === "tool_use") {
-      // Agregar la respuesta del asistente (con las tool calls) al historial
       messages.push({ role: "assistant", content: response.content })
 
-      // Ejecutar todas las tools solicitadas en paralelo
       const toolResults: Anthropic.ToolResultBlockParam[] = await Promise.all(
         response.content
           .filter((b): b is Anthropic.ToolUseBlock => b.type === "tool_use")
@@ -197,7 +272,8 @@ export async function runAgent(
             console.log(`[agent] Tool use: ${toolCall.name}`, toolCall.input)
             const result = await executeTool(
               toolCall.name,
-              toolCall.input as Record<string, string>
+              toolCall.input as Record<string, string>,
+              context
             )
             console.log(`[agent] Tool result: ${toolCall.name} → ${result}`)
             return {
@@ -208,7 +284,6 @@ export async function runAgent(
           })
       )
 
-      // Agregar resultados de tools al historial y continuar el loop
       messages.push({ role: "user", content: toolResults })
       continue
     }

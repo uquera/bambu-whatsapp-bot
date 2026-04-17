@@ -235,13 +235,13 @@ async function processWebhook(body: unknown) {
       }
 
       await sendButtons(channel, channelId, WELCOME_BODY, WELCOME_BUTTONS)
-      replyText = await runAgent(classified, [], userText)
+      replyText = await runAgent(classified, [], userText, { channelId, channel: channel as string })
     }
 
   } else {
     const userType = conversation.userType as "PACIENTE" | "PROFESIONAL"
     const history = buildMessages(conversation.messages)
-    replyText = await runAgent(userType, history, userText)
+    replyText = await runAgent(userType, history, userText, { channelId, channel: channel as string })
   }
 
   // ─── Enviar respuesta y persistirla ────────────────────────────────────
