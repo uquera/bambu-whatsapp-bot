@@ -38,8 +38,13 @@ export async function POST(
     },
   })
 
-  // Enviar por el canal correspondiente
-  await sendMessage(conversation.channel, conversation.channelId, text.trim())
+  // Enviar por el canal correspondiente — no crashear si el token expiró
+  try {
+    await sendMessage(conversation.channel, conversation.channelId, text.trim())
+  } catch (err) {
+    console.error("[reply] Error enviando mensaje por canal (token expirado?):", err)
+    // El mensaje ya quedó guardado en DB — el operador sabe que lo ingresó
+  }
 
   // Notificar SSE
   botEvents.emit("update", { type: "new_message", conversationId: id })

@@ -268,7 +268,7 @@ export async function runAgent(
   ]
 
   // Tool use loop: Claude puede llamar herramientas varias veces antes de responder texto
-  for (let iteration = 0; iteration < 8; iteration++) {
+  for (let iteration = 0; iteration < 12; iteration++) {
     const response = await anthropic.messages.create({
       model: MODEL,
       max_tokens: 1024,
